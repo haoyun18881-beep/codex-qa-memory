@@ -1,0 +1,6 @@
+interface:
+  display_name: "Codex QA Memory"
+  short_description: "QA 长期记忆和历史线索默认入口"
+  default_prompt: "Use $codex-qa-memory first for prior discussions, project history, user preferences, rules, and failure memories; only fall back to diary recall for exact evidence."
+policy:
+  allow_implicit_invocation: true

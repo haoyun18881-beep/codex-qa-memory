@@ -1,0 +1,49 @@
+{
+  "name": "codex-qa-memory",
+  "version": "0.1.0",
+  "description": "Local-first Codex QA diary and memory toolkit: session-to-diary logger, structured memory nodes, PowerShell CLI, and Codex skills for recall and evidence lookup.",
+  "private": false,
+  "license": "BUSL-1.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/haoyun18881-beep/codex-qa-memory.git"
+  },
+  "bugs": {
+    "url": "https://github.com/haoyun18881-beep/codex-qa-memory/issues"
+  },
+  "homepage": "https://github.com/haoyun18881-beep/codex-qa-memory#readme",
+  "files": [
+    "qa-logger/README.md",
+    "qa-logger/pyproject.toml",
+    "qa-logger/src/qa_logger/*.py",
+    "qa-logger/tests/*.py",
+    "qa-logger/samples/session.safe.jsonl",
+    "scripts/*.ps1",
+    "skills/codex-qa-memory/SKILL.md",
+    "skills/codex-qa-memory/agents/openai.yaml",
+    "skills/codex-qa-memory/references/*.md",
+    "skills/codex-qa-memory/scripts/*.ps1",
+    "skills/codex-qa-memory/scripts/*.vbs",
+    "skills/codex-qa-diary-recall/SKILL.md",
+    "skills/codex-qa-diary-recall/agents/openai.yaml",
+    "qa-memory-template/*.md",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "scripts": {
+    "test:python": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:PYTHONPATH='qa-logger/src'; python -m unittest discover -s qa-logger/tests\"",
+    "memory:validate": "powershell -NoProfile -ExecutionPolicy Bypass -File skills/codex-qa-memory/scripts/qa-mem.ps1 validate -Root qa-memory-template",
+    "pack:dry": "npm pack --dry-run"
+  },
+  "keywords": [
+    "codex",
+    "qa-diary",
+    "qa-memory",
+    "agent-memory",
+    "long-term-memory",
+    "powershell-cli",
+    "codex-skill",
+    "local-first"
+  ]
+}
