@@ -1,40 +1,45 @@
 # Codex QA Memory
 
-Codex QA Memory is a local-first toolkit for turning Codex conversations into durable QA diaries and then into small, structured memory nodes that an agent can retrieve without rereading full chat history.
+> **让 Codex 不用翻完整 Session，也能自动找回以前的决定、偏好、失败经验、时间和证据位置。**
 
-It includes:
+Codex QA Memory 把全量 QA 日记和小型结构化记忆节点分开保存。日常召回先查小节点，速度快、上下文小；需要原话、日期或 Session（会话）证据时，再通过 CLI 精确定位到对应日记和原始记录。
 
-- `qa-logger`: a Python CLI that scans local Codex session JSONL and writes Markdown QA diaries.
-- `scripts`: Windows PowerShell watcher/supervisor helpers for automatic local syncing.
-- `skills/codex-qa-memory`: a Codex Skill for structured memory retrieval, candidate generation, validation, and maintenance.
-- `skills/codex-qa-diary-recall`: a Codex Skill for evidence lookup when exact wording, dates, session IDs, or diary anchors are needed.
-- `qa-memory-template`: a sanitized starter layout for Markdown + JSONL memory storage.
+## 它能帮你得到什么
 
-No real diary, session, memory node, vector index, log, token, key, cookie, or private project data is included.
+1. **不用重翻完整 Session**：先从结构化记忆和 QA 日记索引定位答案。
+2. **全量 QA 仍然保留**：重要细节没有因为做小节点而丢失。
+3. **小节点召回更省上下文**：只把当前任务需要的事实、决定或偏好交给 Agent。
+4. **时间和位置可以快速查到**：CLI 能搜索关键词、日期、状态码和来源锚点。
+5. **需要时再回原始证据**：先定位，再窄查对应 Session，不做全盘扫描。
+6. **每条记忆都能追溯**：节点保留日记、manifest 或其他来源指针。
+7. **候选不会自动变成硬规则**：`candidate`、`soft-active`、`active` 三态避免旧记忆直接覆盖当前事实。
+8. **自然说话即可自动触发**：说“之前聊过”“你还记得吗”“我们以前怎么处理的”，Codex 会优先走记忆召回。
 
-## Why This Exists
+## 最简单的用法
 
-Long-running agent work fails when history only exists as giant chat logs. A useful memory system needs both:
+安装 Skill 后可以直接说：
 
-- **store（存）**: save the right facts, decisions, preferences, failures, sources, and relationships in small nodes;
-- **retrieve（取）**: return only the small relevant slice for the current task.
+```text
+你还记得我们之前怎么处理这个问题吗
+查一下以前关于这个项目的决定
+找出当时的日期和证据位置
+我要当时的原话和 Session 编号
+```
 
-This project keeps those layers separate:
+日常自然回忆走 `codex-qa-memory`；需要原话、日期、证据或 Session ID 时，走 `codex-qa-diary-recall`。
 
-1. Raw Codex sessions stay private.
-2. QA Logger turns user/assistant turns into readable daily Markdown.
-3. QA Memory converts selected diary facts into small candidate/active nodes.
-4. CLI tools filter, validate, rank, and decode nodes before an LLM sees them.
-5. Skills tell Codex when to use memory first and when to fall back to exact diary evidence.
+CLI 可以快速定位：
 
-## What Makes It Different
+```powershell
+powershell -ExecutionPolicy Bypass -File .\skills\codex-qa-memory\scripts\qa-mem.ps1 get "关键词"
+powershell -ExecutionPolicy Bypass -File .\skills\codex-qa-memory\scripts\qa-mem.ps1 validate -Root .\qa-memory-template
+```
 
-- **Local-first（本地优先）**: defaults to `%USERPROFILE%\.codex`, no hosted service.
-- **Evidence-backed（证据可追溯）**: memory nodes keep source pointers back to diaries or manifests.
-- **Small-node design（小节点设计）**: retrieval returns compact facts with type/status/scope codes plus Chinese labels.
-- **Three-state memory（三态记忆）**: `candidate` is a lead, `soft-active` is low-risk contextual memory, `active` is current usable memory.
-- **No automatic rule promotion（不自动提升硬规则）**: automation can generate candidates and indexes, but high-impact rules require human/main-thread review.
-- **Skill split（Skill 分工清楚）**: `codex-qa-memory` is the default memory entrance; `codex-qa-diary-recall` is the evidence room.
+## English quick overview
+
+Codex QA Memory combines full local QA diaries with compact structured memory nodes. Codex can retrieve the small relevant fact first, locate dates and source anchors through the CLI, and open the original session only when exact evidence is needed. Natural phrases such as “do you remember?” can trigger the memory skill automatically.
+
+The public package contains no real diary, session, memory node, vector index, log, token, key, cookie, or private project data.
 
 ## Architecture
 
