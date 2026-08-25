@@ -1,5 +1,5 @@
 param(
-    [int]$PollSeconds = 15,
+    [int]$PollSeconds = 120,
     [string]$PythonExe = "python",
     [string]$QaLoggerSrc = (Join-Path (Split-Path -Parent $PSScriptRoot) "qa-logger\src"),
     [string]$LogDir = (Join-Path $env:USERPROFILE ".codex\qa-diary\_watcher"),
@@ -70,8 +70,11 @@ try {
             poll_seconds = $PollSeconds
             duration_ms = [int](($finished - $started).TotalMilliseconds)
             sessions_seen = $(if ($summary) { $summary.sessions_seen } else { $null })
+            sessions_processed = $(if ($summary) { $summary.sessions_processed } else { $null })
             sessions_with_qa = $(if ($summary) { $summary.sessions_with_qa } else { $null })
             turns_seen = $(if ($summary) { $summary.turns_seen } else { $null })
+            bytes_read = $(if ($summary) { $summary.bytes_read } else { $null })
+            state_path = $(if ($summary) { $summary.state_path } else { $null })
             written_files_count = $writtenCount
             written_files = $(if ($summary) { $summary.written_files } else { @() })
         }

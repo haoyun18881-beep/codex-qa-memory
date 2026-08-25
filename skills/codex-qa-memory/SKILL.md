@@ -101,11 +101,14 @@ powershell -ExecutionPolicy Bypass -File "%USERPROFILE%\.codex\skills\codex-qa-m
 powershell -ExecutionPolicy Bypass -File "%USERPROFILE%\.codex\skills\codex-qa-memory\scripts\qa_memory_candidates.ps1" -Date 2026-07-06
 powershell -ExecutionPolicy Bypass -File "%USERPROFILE%\.codex\skills\codex-qa-memory\scripts\qa_memory_maintain.ps1" -Date 2026-07-06
 powershell -ExecutionPolicy Bypass -File "%USERPROFILE%\.codex\skills\codex-qa-memory\scripts\qa_memory_validate.ps1"
+powershell -ExecutionPolicy Bypass -File "%USERPROFILE%\.codex\skills\codex-qa-memory\scripts\qa_diary_health.ps1"
 ```
 
 `qa_memory_recall.ps1` 和 `qa_memory_validate.ps1` 只读 `%USERPROFILE%\.codex\qa-memory`。`qa_memory_candidates.ps1` 默认只读 `qa-diary\YYYY-MM-DD\_index.md` 并输出候选；只有显式 `-WriteCandidate` 时才写入 `candidates\YYYY-MM.md`，仍不写 active。
 
 `qa_memory_maintain.ps1` 是自动维护入口：读取当天 `qa-diary\YYYY-MM-DD\_index.md`，追加缺失的 `candidate（候选）` 历史主题、机器层 JSONL、`terms.jsonl` 查询别名、`audit.jsonl` 审计和 `maintenance\YYYY-MM-DD.md` 报告，然后运行校验；它不得提升 active，也不得写全局 `AGENTS.md`。当前本机计划任务通过 `run_qa_memory_maintain_hidden.vbs` 隐藏启动，每小时触发一次，并用 `-RequireCodexRunning` 保证 Codex 未运行时直接退出不写文件。
+
+`qa_diary_health.ps1` 是 QA 日记健康检查入口：核对计划任务路径、watcher（监视器）心跳、日记新鲜度以及 manifest（清单）与 Markdown 锚点一致性。连续两次失败或发现路径/锚点硬错误时写入 `_watcher\ALERT.json` 并返回非零；恢复后自动清除告警。计划任务可通过 `run_qa_diary_health_hidden.vbs` 无窗口启动，脚本内部的缺失索引探针也禁止创建控制台窗口。
 
 脚本是 v2 CLI 取回治理入口：负责 source 表核验、三态 gate、跨项目过滤、排序、预算截断、术语别名匹配和短中文解码。取回运行记录和命中日志以后可按需增加，但不是 v2 最小必备文件。SQLite 只能作为未来可选缓存，不是 v2 主存储，也不能成为取回前置依赖。
 

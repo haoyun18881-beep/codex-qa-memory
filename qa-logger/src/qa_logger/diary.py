@@ -17,13 +17,26 @@ PROVISIONAL_ANSWER_MAX_CHARS = 800
 PROVISIONAL_ANSWER_MAX_LINES = 14
 
 
-def write_session_diary(diary_root: Path, session: SessionDiary) -> list[Path]:
+def write_session_diary(
+    diary_root: Path,
+    session: SessionDiary,
+    recorded_keys: set[str] | None = None,
+    rebuild_indexes: bool = True,
+) -> list[Path]:
     written: list[Path] = []
     for turn in session.turns:
         day = local_day(turn.question_time)
         day_dir = diary_root / day
         anchor = turn_anchor(session.meta.session_id, turn.question_time, turn.question)
-        if already_recorded(day_dir, session.meta.session_id, anchor):
+        fingerprint = turn_fingerprint(turn.question_time, turn.question)
+        if already_recorded(
+            day_dir,
+            session.meta.session_id,
+            anchor,
+            fingerprint,
+            turn.question_time,
+            recorded_keys=recorded_keys,
+        ):
             continue
         project_root = session.meta.cwd
         project_name = Path(project_root).name if project_root else "general"
@@ -38,9 +51,12 @@ def write_session_diary(diary_root: Path, session: SessionDiary) -> list[Path]:
             title = project_name if scope == "projects" else "General"
             target.write_text(f"# {title}\n\n", encoding="utf-8")
         append_turn(target, turn, session)
-        write_meta(day_dir, turn, session, target)
+        write_meta(day_dir, turn, session, target, fingerprint)
+        if recorded_keys is not None:
+            recorded_keys.add(f"fp:{fingerprint}")
+            recorded_keys.add(f"ts:{turn.question_time}")
         written.append(target)
-    if written:
+    if written and rebuild_indexes:
         rebuild_day_indexes(diary_root)
     return sorted(set(written))
 
@@ -64,7 +80,13 @@ def append_turn(path: Path, turn: QaTurn, session: SessionDiary) -> None:
                 handle.write("> Redaction: sensitive-looking text was replaced before persistence.\n\n")
 
 
-def write_meta(day_dir: Path, turn: QaTurn, session: SessionDiary, target: Path) -> None:
+def write_meta(
+    day_dir: Path,
+    turn: QaTurn,
+    session: SessionDiary,
+    target: Path,
+    fingerprint: str,
+) -> None:
     meta_dir = day_dir / "_meta"
     meta_dir.mkdir(parents=True, exist_ok=True)
     record = {
@@ -80,6 +102,7 @@ def write_meta(day_dir: Path, turn: QaTurn, session: SessionDiary, target: Path)
         "answer_times": [answer.timestamp for answer in turn.answers],
         "target": str(target.relative_to(day_dir)),
         "anchor": turn_anchor(session.meta.session_id, turn.question_time, turn.question),
+        "turn_fingerprint": fingerprint,
     }
     manifest = meta_dir / "manifest.jsonl"
     with manifest.open("a", encoding="utf-8", newline="\n") as handle:
@@ -87,14 +110,45 @@ def write_meta(day_dir: Path, turn: QaTurn, session: SessionDiary, target: Path)
         handle.write("\n")
 
 
-def already_recorded(day_dir: Path, session_id: str, anchor: str) -> bool:
+def already_recorded(
+    day_dir: Path,
+    session_id: str,
+    anchor: str,
+    fingerprint: str,
+    question_time: str,
+    recorded_keys: set[str] | None = None,
+) -> bool:
+    if recorded_keys is not None:
+        return f"fp:{fingerprint}" in recorded_keys or f"ts:{question_time}" in recorded_keys
     manifest = day_dir / "_meta" / "manifest.jsonl"
     if not manifest.exists():
         return False
     for record in read_manifest(manifest):
+        if record.get("turn_fingerprint") == fingerprint:
+            return True
+        # Legacy manifests did not store a content fingerprint. Codex session
+        # forks preserve the original event timestamp, which is therefore the
+        # safest backwards-compatible cross-session dedupe key.
+        if record.get("question_time") == question_time:
+            return True
         if record.get("session", {}).get("id") == session_id and record.get("anchor") == anchor:
             return True
     return False
+
+
+def build_recorded_turn_keys(diary_root: Path) -> set[str]:
+    keys: set[str] = set()
+    if not diary_root.exists():
+        return keys
+    for manifest in diary_root.glob("????-??-??/_meta/manifest.jsonl"):
+        for record in read_manifest(manifest):
+            fingerprint = str(record.get("turn_fingerprint", "")).strip()
+            question_time = str(record.get("question_time", "")).strip()
+            if fingerprint:
+                keys.add(f"fp:{fingerprint}")
+            if question_time:
+                keys.add(f"ts:{question_time}")
+    return keys
 
 
 def read_manifest(path: Path) -> list[dict]:
@@ -106,7 +160,10 @@ def read_manifest(path: Path) -> list[dict]:
                 record = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            key = (str(record.get("session", {}).get("id")), str(record.get("question_time")))
+            key = (
+                str(record.get("turn_fingerprint") or record.get("question_time")),
+                str(record.get("question_time")),
+            )
             if key in seen:
                 continue
             seen.add(key)
@@ -206,6 +263,13 @@ def turn_anchor(session_id: str, timestamp: str, question: str) -> str:
 
     digest = hashlib.sha256(f"{session_id}|{timestamp}|{question}".encode("utf-8")).hexdigest()[:10]
     return f"q-{digest}"
+
+
+def turn_fingerprint(timestamp: str, question: str) -> str:
+    import hashlib
+
+    normalized = " ".join(question.split())
+    return hashlib.sha256(f"{timestamp}|{normalized}".encode("utf-8")).hexdigest()[:20]
 
 
 def escape_cell(value: str) -> str:

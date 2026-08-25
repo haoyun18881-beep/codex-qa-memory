@@ -1,12 +1,14 @@
 param(
     [switch]$Unregister,
     [string]$TaskName = "Codex QA Diary Watcher",
-    [string]$TaskPath = "\Codex\"
+    [string]$TaskPath = "\Codex\",
+    [string]$HealthTaskName = "Codex QA Diary Health"
 )
 
 $ErrorActionPreference = "SilentlyContinue"
 
 Stop-ScheduledTask -TaskName $TaskName -TaskPath $TaskPath
+Stop-ScheduledTask -TaskName $HealthTaskName -TaskPath $TaskPath
 
 Get-CimInstance Win32_Process |
     Where-Object {
@@ -20,6 +22,8 @@ Get-CimInstance Win32_Process |
 
 if ($Unregister) {
     Unregister-ScheduledTask -TaskName $TaskName -TaskPath $TaskPath -Confirm:$false
+    Unregister-ScheduledTask -TaskName $HealthTaskName -TaskPath $TaskPath -Confirm:$false
 }
 
-Get-ScheduledTask -TaskName $TaskName -TaskPath $TaskPath | Select-Object TaskName,TaskPath,State
+Get-ScheduledTask -TaskName @($TaskName, $HealthTaskName) -TaskPath $TaskPath |
+    Select-Object TaskName,TaskPath,State

@@ -19,6 +19,7 @@
     "qa-logger/tests/*.py",
     "qa-logger/samples/session.safe.jsonl",
     "scripts/*.ps1",
+    "scripts/*.vbs",
     "skills/codex-qa-memory/SKILL.md",
     "skills/codex-qa-memory/agents/openai.yaml",
     "skills/codex-qa-memory/references/*.md",

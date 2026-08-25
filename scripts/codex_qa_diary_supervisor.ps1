@@ -1,6 +1,6 @@
 param(
     [int]$PollSeconds = 10,
-    [int]$WatcherPollSeconds = 15,
+    [int]$WatcherPollSeconds = 120,
     [string]$WatcherScript = (Join-Path $PSScriptRoot "codex_qa_diary_watcher.ps1"),
     [string]$LogDir = (Join-Path $env:USERPROFILE ".codex\qa-diary\_watcher"),
     [switch]$Once

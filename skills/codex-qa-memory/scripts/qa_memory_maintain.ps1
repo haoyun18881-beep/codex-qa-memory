@@ -1,6 +1,7 @@
 param(
   [string]$Date = (Get-Date -Format 'yyyy-MM-dd'),
   [string]$DiaryRoot = "$env:USERPROFILE\.codex\qa-diary",
+  [string]$ScanStatePath = '',
   [string]$MemoryRoot = "$env:USERPROFILE\.codex\qa-memory",
   [int]$MaxCandidates = 40,
   [switch]$NoWrite,
@@ -13,6 +14,9 @@ $ErrorActionPreference = 'Stop'
 $scriptRoot = Split-Path -Parent $PSCommandPath
 $dateCompact = $Date -replace '-', ''
 $runId = "qa_memory_daily_maintain_$dateCompact"
+if ([string]::IsNullOrWhiteSpace($ScanStatePath)) {
+  $ScanStatePath = Join-Path $DiaryRoot '_watcher\scan-state.json'
+}
 
 if ($RequireCodexRunning) {
   $codexProcess = @(Get-Process -ErrorAction SilentlyContinue | Where-Object {
@@ -70,6 +74,174 @@ function Get-ObjectValue {
   $property = $Object.PSObject.Properties[$Name]
   if ($null -eq $property) { return $null }
   return $property.Value
+}
+
+function Read-JsonSafe {
+  param([string]$Path)
+  if (-not (Test-Path -LiteralPath $Path)) { return $null }
+  # scan-state should be small; refuse unexpected growth instead of reading it unbounded.
+  if ((Get-Item -LiteralPath $Path).Length -gt 16MB) { return $null }
+  try { return Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json } catch { return $null }
+}
+
+function Test-SkippedUserMessage {
+  param([string]$Message)
+  $text = "$Message".Trim()
+  if ($text.Length -eq 0) { return $true }
+  foreach ($prefix in @('<subagent_notification>','<environment_context>','<recommended_plugins>','<turn_aborted>')) {
+    if ($text.StartsWith($prefix, [StringComparison]::Ordinal)) { return $true }
+  }
+  return $false
+}
+
+function Test-BlockingMachineUserMessage {
+  param([string]$Message)
+  $text = "$Message".Trim()
+  if ($text.Length -eq 0) { return $true }
+  foreach ($prefix in @('<environment_context>','<recommended_plugins>','<turn_aborted>')) {
+    if ($text.StartsWith($prefix, [StringComparison]::Ordinal)) { return $true }
+  }
+  # subagent_notification is transparent: it can be inserted inside a real
+  # main-thread turn and must never suppress the later main final.
+  return $false
+}
+
+function ConvertTo-LocalDaySafe {
+  param([string]$Timestamp)
+  try { return ([datetimeoffset]::Parse($Timestamp)).LocalDateTime.ToString('yyyy-MM-dd') } catch { return $null }
+}
+
+function Read-BoundedSessionTail {
+  param([string]$Path)
+  # Hard safety gate: never inspect more than 4 MiB from one session file.
+  $maxBytes = 4MB
+  $stream = $null
+  try {
+    $stream = [System.IO.File]::Open($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::ReadWrite)
+    # Read to the real EOF. scan-state may be stale precisely because the
+    # watcher stopped before a newly appended Q/A was committed.
+    $boundedEnd = [long]$stream.Length
+    if ($boundedEnd -le 0) { return [pscustomobject]@{ text = ''; bytes = 0 } }
+    $start = [Math]::Max([long]0, $boundedEnd - $maxBytes)
+    [void]$stream.Seek($start, [IO.SeekOrigin]::Begin)
+    $length = [int]($boundedEnd - $start)
+    $buffer = New-Object byte[] $length
+    $read = 0
+    while ($read -lt $length) {
+      $count = $stream.Read($buffer, $read, $length - $read)
+      if ($count -le 0) { break }
+      $read += $count
+    }
+    $text = [Text.Encoding]::UTF8.GetString($buffer, 0, $read)
+    if ($start -gt 0) {
+      $firstNewline = $text.IndexOf("`n", [StringComparison]::Ordinal)
+      $text = if ($firstNewline -ge 0) { $text.Substring($firstNewline + 1) } else { '' }
+    }
+    return [pscustomobject]@{ text = $text; bytes = $read }
+  } finally {
+    if ($null -ne $stream) { $stream.Dispose() }
+  }
+}
+
+function Test-BoundedTailHasCompletedQaForDay {
+  param([string]$Text, [string]$TargetDay)
+  $currentQuestionDay = $null
+  $blockedBySkippedUser = $false
+  foreach ($line in @($Text -split "`r?`n")) {
+    if ([string]::IsNullOrWhiteSpace($line)) { continue }
+    if ($line.IndexOf('user_message', [StringComparison]::Ordinal) -lt 0 -and
+      $line.IndexOf('agent_message', [StringComparison]::Ordinal) -lt 0) { continue }
+    try { $row = $line | ConvertFrom-Json } catch { continue }
+    if ("$($row.type)" -ne 'event_msg') { continue }
+    $eventType = "$($row.payload.type)"
+    if ($eventType -eq 'user_message') {
+      if (Test-SkippedUserMessage -Message "$($row.payload.message)") {
+        # A subagent/environment injection inside a real turn is transparent.
+        # Only suppress final-only fallback when no real user is already known.
+        if ($null -eq $currentQuestionDay -and (Test-BlockingMachineUserMessage -Message "$($row.payload.message)")) {
+          $blockedBySkippedUser = $true
+        }
+        continue
+      }
+      $currentQuestionDay = ConvertTo-LocalDaySafe -Timestamp "$($row.timestamp)"
+      $blockedBySkippedUser = $false
+      continue
+    }
+    if ($eventType -eq 'agent_message' -and "$($row.payload.phase)" -eq 'final_answer' -and
+      -not [string]::IsNullOrWhiteSpace("$($row.payload.message)")) {
+      if ($null -ne $currentQuestionDay) {
+        if ($currentQuestionDay -eq $TargetDay) { return $true }
+      } elseif (-not $blockedBySkippedUser) {
+        # A large tool result can push the user event outside the 4 MiB window.
+        # In a scan-state-confirmed main thread, a non-empty final answer is
+        # still positive activity evidence for its local day. A skipped machine
+        # user event seen in-window suppresses this fallback.
+        $answerDay = ConvertTo-LocalDaySafe -Timestamp "$($row.timestamp)"
+        if ($answerDay -eq $TargetDay) { return $true }
+      }
+      $currentQuestionDay = $null
+      $blockedBySkippedUser = $false
+    }
+  }
+  return $false
+}
+
+function Get-BoundedSessionQaEvidence {
+  param([string]$TargetDay)
+  # Hard safety gate: inspect at most eight scan-state-confirmed main sessions.
+  $maxFiles = 8
+  $scanState = Read-JsonSafe -Path $ScanStatePath
+  if ($null -eq $scanState -or $null -eq $scanState.files) {
+    return [pscustomobject]@{ has_qa = $false; source = 'scan_state_unavailable'; sessions_checked = 0; bytes_examined = 0; evidence = $null }
+  }
+  $available = New-Object System.Collections.Generic.List[object]
+  foreach ($property in $scanState.files.PSObject.Properties) {
+    if ("$($property.Value.thread_source)" -ne 'user') { continue }
+    $path = "$($property.Name)"
+    if (-not (Test-Path -LiteralPath $path)) { continue }
+    $file = Get-Item -LiteralPath $path
+    $available.Add([pscustomobject]@{ path = $file.FullName; last_write_utc = $file.LastWriteTimeUtc })
+  }
+  $candidates = @(
+    $available |
+      Sort-Object last_write_utc -Descending |
+      Select-Object -First $maxFiles
+  )
+  $checked = 0
+  $bytesExamined = 0L
+  foreach ($candidate in $candidates) {
+    $path = "$($candidate.path)"
+    $checked++
+    $tail = Read-BoundedSessionTail -Path $path
+    $bytesExamined += [long]$tail.bytes
+    if (Test-BoundedTailHasCompletedQaForDay -Text $tail.text -TargetDay $TargetDay) {
+      return [pscustomobject]@{
+        has_qa = $true
+        source = 'scan_state_main_realtime_bounded_tail'
+        sessions_checked = $checked
+        bytes_examined = $bytesExamined
+        evidence = $path
+      }
+    }
+  }
+  return [pscustomobject]@{ has_qa = $false; source = 'bounded_evidence_absent'; sessions_checked = $checked; bytes_examined = $bytesExamined; evidence = $null }
+}
+
+function Get-DateQaActivity {
+  param([string]$TargetDay)
+  $manifestPath = Join-Path (Join-Path (Join-Path $DiaryRoot $TargetDay) '_meta') 'manifest.jsonl'
+  if (Test-Path -LiteralPath $manifestPath) {
+    foreach ($line in Get-Content -LiteralPath $manifestPath -TotalCount 32) {
+      if ([string]::IsNullOrWhiteSpace($line)) { continue }
+      try {
+        $record = $line | ConvertFrom-Json
+        if (-not [string]::IsNullOrWhiteSpace("$($record.question_time)")) {
+          return [pscustomobject]@{ has_qa = $true; source = 'manifest'; sessions_checked = 0; bytes_examined = 0; evidence = $manifestPath }
+        }
+      } catch { continue }
+    }
+  }
+  return Get-BoundedSessionQaEvidence -TargetDay $TargetDay
 }
 
 function Append-JsonlUnique {
@@ -230,10 +402,34 @@ foreach ($dir in @($candidateDir, $machineDir, $maintenanceDir)) {
 $status = 'ok'
 $reason = ''
 $timeline = @()
+$timelineTotal = 0
+$timelinePendingBeforeLimit = 0
+$dateQaActivity = $null
 if (Test-Path -LiteralPath $indexPath) {
-  $timeline = Parse-Timeline -IndexPath $indexPath | Select-Object -First $MaxCandidates
+  $allTimeline = @(Parse-Timeline -IndexPath $indexPath)
+  $timelineTotal = $allTimeline.Count
+  $existingNodeIds = @{}
+  foreach ($existingNode in Read-Jsonl -Path $nodesPath) {
+    $existingNodeId = Get-ObjectValue -Object $existingNode -Name 'node_id'
+    if ($null -ne $existingNodeId -and "$existingNodeId".Length -gt 0) {
+      $existingNodeIds["$existingNodeId"] = $true
+    }
+  }
+  $pendingNodeIds = @{}
+  $pendingTimeline = @($allTimeline | Where-Object {
+    $sourceKey = "$Date|$($_.time)|$($_.file)|$($_.topic)"
+    $candidateNodeId = "N-$dateCompact-A$(Get-ShortHash -Text $sourceKey)"
+    if ($existingNodeIds.ContainsKey($candidateNodeId) -or $pendingNodeIds.ContainsKey($candidateNodeId)) {
+      return $false
+    }
+    $pendingNodeIds[$candidateNodeId] = $true
+    return $true
+  })
+  $timelinePendingBeforeLimit = $pendingTimeline.Count
+  $timeline = @($pendingTimeline | Select-Object -First $MaxCandidates)
 } else {
-  $status = 'no_diary_index'
+  $dateQaActivity = Get-DateQaActivity -TargetDay $Date
+  $status = if ($dateQaActivity.has_qa) { 'no_diary_index_with_main_activity' } else { 'no_diary_index' }
   $reason = "missing $indexPath"
 }
 
@@ -426,22 +622,28 @@ $changed = [ordered]@{
 
 if (-not $NoWrite -and $candidateSections.Count -gt 0) {
   $existingText = if (Test-Path -LiteralPath $candidatePath) { Get-Content -LiteralPath $candidatePath -Raw } else { "# QA 记忆候选 $month`r`n" }
+  $seenCandidateIds = @{}
+  foreach ($match in [regex]::Matches($existingText, '(?m)^###\s+(N-\S+)')) {
+    $seenCandidateIds[$match.Groups[1].Value] = $true
+  }
   $appendLines = New-Object System.Collections.Generic.List[string]
   $blockLines = New-Object System.Collections.Generic.List[string]
   $blockNode = $null
 
   foreach ($line in $candidateSections) {
     if ($line -match '^###\s+(N-\S+)') {
-      if ($null -ne $blockNode -and -not ($existingText -match [regex]::Escape($blockNode))) {
+      if ($null -ne $blockNode -and -not $seenCandidateIds.ContainsKey($blockNode)) {
         foreach ($blockLine in $blockLines) { $appendLines.Add($blockLine) }
+        $seenCandidateIds[$blockNode] = $true
       }
       $blockNode = $Matches[1]
       $blockLines = New-Object System.Collections.Generic.List[string]
     }
     if ($null -ne $blockNode) { $blockLines.Add($line) }
   }
-  if ($null -ne $blockNode -and -not ($existingText -match [regex]::Escape($blockNode))) {
+  if ($null -ne $blockNode -and -not $seenCandidateIds.ContainsKey($blockNode)) {
     foreach ($blockLine in $blockLines) { $appendLines.Add($blockLine) }
+    $seenCandidateIds[$blockNode] = $true
   }
 
   $newCandidateLines = New-Object System.Collections.Generic.List[string]
@@ -472,13 +674,18 @@ if (-not $NoWrite -and $candidateSections.Count -gt 0) {
 
 if (-not $NoWrite -and $nodeObjects.Count -gt 0 -and (Test-Path -LiteralPath $memoryIndexPath)) {
   $indexText = Get-Content -LiteralPath $memoryIndexPath -Raw
+  $seenIndexNodeIds = @{}
+  foreach ($match in [regex]::Matches($indexText, '(?m)^\|\s*(N-\S+)\s*\|')) {
+    $seenIndexNodeIds[$match.Groups[1].Value] = $true
+  }
   $indexLines = New-Object System.Collections.Generic.List[string]
   foreach ($node in $nodeObjects) {
-    if ($indexText -match [regex]::Escape($node.node_id)) { continue }
+    if ($seenIndexNodeIds.ContainsKey("$($node.node_id)")) { continue }
     $content = "$($node.content_zh)" -replace '\|', '/'
     if ($content.Length -gt 180) { $content = $content.Substring(0, 180) + '...' }
     $recordPath = "candidates\$month.md"
     $indexLines.Add("| $($node.node_id) | $($node.type_code) | $($node.status_code) | $($node.scope_code) | $content | $($node.source_ref) | $recordPath |")
+    $seenIndexNodeIds["$($node.node_id)"] = $true
   }
   if ($indexLines.Count -gt 0) {
     Add-Content -LiteralPath $memoryIndexPath -Encoding UTF8 -Value $indexLines
@@ -519,7 +726,9 @@ if (-not $SkipValidation) {
 
 $auditStatus = if ($status -ne 'ok') { $status } elseif (($validateQaMemExit -ne $null -and $validateQaMemExit -ne 0) -or ($validateStrictExit -ne $null -and $validateStrictExit -ne 0)) { 'validate_failed' } else { 'ok' }
 $audit = [pscustomobject]@{
-  audit_id = "AUD-$dateCompact-$(Get-ShortHash -Text $runId)"
+  # Keep one record per state transition. A no_diary_index run followed by a
+  # successful recovery must not be hidden behind the original daily ID.
+  audit_id = "AUD-$dateCompact-$(Get-ShortHash -Text "$runId|$auditStatus")"
   schema_version = 'qa-memory-machine-v2.0'
   run_id = $runId
   action = 'daily-maintain'
@@ -541,6 +750,9 @@ if ($reason.Length -gt 0) { $report.Add("- reason: $reason") }
 $report.Add("- index: $indexPath")
 $report.Add("- max_candidates: $MaxCandidates")
 $report.Add("- timeline_hits: $($timeline.Count)")
+$report.Add("- timeline_total: $timelineTotal")
+$report.Add("- timeline_pending_before_limit: $timelinePendingBeforeLimit")
+$report.Add("- timeline_pending_after_run: $([Math]::Max(0, $timelinePendingBeforeLimit - $timeline.Count))")
 $report.Add("- active_promotion: none")
 $report.Add("- global_agents_write: none")
 $report.Add("")
@@ -584,9 +796,11 @@ $result = [pscustomobject]@{
   changed = $changed
   validate_qa_mem_exit = $validateQaMemExit
   validate_strict_exit = $validateStrictExit
+  date_qa_activity = $dateQaActivity
 }
 
 $result | ConvertTo-Json -Depth 20
 
 if ($auditStatus -eq 'validate_failed') { exit 1 }
+if ($auditStatus -eq 'no_diary_index_with_main_activity') { exit 2 }
 exit 0
