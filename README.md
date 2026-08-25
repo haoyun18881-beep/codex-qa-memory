@@ -1,164 +1,130 @@
-# Codex QA Memory
+# Codex QA Memory · 永不失忆的 AI 长期记忆外挂
 
-> **让 Codex 不用翻完整 Session，也能自动找回以前的决定、偏好、失败经验、时间和证据位置。**
+给 Codex 装一块不会随着窗口关闭而消失的本地记忆硬盘。
 
-Codex QA Memory 把全量 QA 日记和小型结构化记忆节点分开保存。日常召回先查小节点，速度快、上下文小；需要原话、日期或 Session（会话）证据时，再通过 CLI 精确定位到对应日记和原始记录。
+换窗口、过一周、跨项目。以前定过的规则、个人偏好和踩过的坑，不用重新解释，问一句就能找回来。
 
-## 它能帮你得到什么
+- 🧠 **永不失忆**：完整 QA 日记和结构化记忆节点双层保存
+- ⚡ **先快后准**：先查小记忆，需要原话时再精准取证
+- 🔐 **有据可查**：每条记忆保留时间、来源和证据位置
 
-1. **不用重翻完整 Session**：先从结构化记忆和 QA 日记索引定位答案。
-2. **全量 QA 仍然保留**：重要细节没有因为做小节点而丢失。
-3. **小节点召回更省上下文**：只把当前任务需要的事实、决定或偏好交给 Agent。
-4. **时间和位置可以快速查到**：CLI 能搜索关键词、日期、状态码和来源锚点。
-5. **需要时再回原始证据**：先定位，再窄查对应 Session，不做全盘扫描。
-6. **每条记忆都能追溯**：节点保留日记、manifest 或其他来源指针。
-7. **候选不会自动变成硬规则**：`candidate`、`soft-active`、`active` 三态避免旧记忆直接覆盖当前事实。
-8. **自然说话即可自动触发**：说“之前聊过”“你还记得吗”“我们以前怎么处理的”，Codex 会优先走记忆召回。
+---
 
-## 最简单的用法
+## 它解决什么问题
 
-安装 Skill 后可以直接说：
+普通 AI 一换窗口就容易忘。把整段旧对话重新塞回去，又慢、又贵，还容易挤爆上下文。
 
-```text
-你还记得我们之前怎么处理这个问题吗
-查一下以前关于这个项目的决定
-找出当时的日期和证据位置
-我要当时的原话和 Session 编号
-```
+Codex QA Memory 不走大而全的路线。它把记忆分成两层：
 
-日常自然回忆走 `codex-qa-memory`；需要原话、日期、证据或 Session ID 时，走 `codex-qa-diary-recall`。
+- **记忆前门**：保存短小、结构化、能快速召回的记忆节点。
+- **证据室**：保存完整 QA 日记。需要原话、日期或会话编号时，再回去精准取证。
 
-CLI 可以快速定位：
+平时问“你还记得吗”，先走记忆前门；只有需要证明时，才打开证据室。
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\skills\codex-qa-memory\scripts\qa-mem.ps1 get "关键词"
-powershell -ExecutionPolicy Bypass -File .\skills\codex-qa-memory\scripts\qa-mem.ps1 validate -Root .\qa-memory-template
-```
+---
 
-## English quick overview
+## 为什么它真的轻
 
-Codex QA Memory combines full local QA diaries with compact structured memory nodes. Codex can retrieve the small relevant fact first, locate dates and source anchors through the CLI, and open the original session only when exact evidence is needed. Natural phrases such as “do you remember?” can trigger the memory skill automatically.
+- 不需要数据库。
+- 不需要向量库。
+- 不需要云端记忆服务。
+- 核心数据就是本地 Markdown 和 JSONL 文件，能看、能迁移、能审查。
+- 默认只把当前任务需要的少量记忆交给 Codex，不把整本日记重新塞进上下文。
 
-The public package contains no real diary, session, memory node, vector index, log, token, key, cookie, or private project data.
+它不是靠堆组件解决问题，而是用最短的路径，把真正有用的记忆找回来。
 
-## Architecture
+---
 
-```text
-Codex sessions
-  -> qa-logger scan-sessions
-  -> qa-diary/YYYY-MM-DD/
-  -> qa_memory_maintain.ps1
-  -> qa-memory machine/*.jsonl + Markdown records
-  -> qa-mem.ps1 get/graph/validate
-  -> Codex Skill short recall packet
-```
+## 两个 Skill，各管一件事
 
-## Install
+- **codex-qa-memory**：负责自然回忆、长期偏好、规则、失败经验、项目历史和候选记忆审查。
+- **codex-qa-diary-recall**：负责原话、日期、Session ID、Thread ID 和原始日记证据。
 
-Clone the repository:
+你可以直接这样说：
+
+- 你还记得我们之前怎么处理这个问题吗？
+- 查一下以前关于这个项目的决定。
+- 找出当时的日期和证据位置。
+- 我要当时的原话和 Session 编号。
+
+---
+
+## 它是怎么工作的
+
+1. 日志记录器把 Codex 会话持续整理成按日期归档的 QA 日记。
+2. 记忆维护脚本从日记索引中生成可审查的候选记忆节点。
+3. 日常回忆先查小节点，快速恢复偏好、规则、决定和失败经验。
+4. 需要原始证据时，再根据来源指针窄查对应日记或会话。
+
+完整记录不会因为生成了小节点就被丢掉。小节点负责快，原始日记负责准。
+
+---
+
+## 记忆不会偷偷变成规则
+
+所有长期记忆分成三种状态：
+
+- **candidate（候选）**：自动整理出来的线索，默认不生效。
+- **soft-active（软生效）**：低风险、来源完整、范围明确，只作参考。
+- **active（长期有效）**：经过人工复核或用户明确确认后才能提升。
+
+当前用户指令和当前项目文件永远优先。旧记忆不能盖过现在的事实。
+
+---
+
+## 三档召回预算
+
+- **quick**：最多 6 个节点，目标字符预算 1200。适合新窗口和轻量恢复。
+- **project**：最多 15 个节点，目标字符预算 3000。适合继续项目和恢复边界。
+- **deep**：最多 40 个节点，目标字符预算 8000。适合冲突审查和方案复盘。
+
+够回答就停，不无限扩大上下文。
+
+---
+
+## 默认保护隐私
+
+常见的 key、token、cookie、Authorization、密码和私密配置，会在持久化前替换成脱敏标记；记忆校验还会再做一次敏感内容扫描。
+
+仓库和发布包不包含任何用户的真实日记、会话、记忆节点、账号文件或凭据。
+
+---
+
+## 最快安装方式
+
+把这个仓库交给 Codex，让它完成下面三件事即可：
+
+1. 把 `codex-qa-memory` 和 `codex-qa-diary-recall` 复制到 Codex Skills 目录。
+2. 首次安装时，把 `qa-memory-template` 初始化为本机 QA Memory 目录。
+3. 先执行一次只读试运行，确认范围后再开始写入本地日记。
+
+需要手动安装时，只保留这几条命令：
 
 ```powershell
 git clone https://github.com/haoyun18881-beep/codex-qa-memory.git
 cd codex-qa-memory
-```
-
-Run the Python logger in dry-run mode first:
-
-```powershell
 $env:PYTHONPATH="$PWD\qa-logger\src"
 python -m qa_logger scan-sessions --dry-run
-```
-
-After reviewing the count, write local diaries:
-
-```powershell
 python -m qa_logger scan-sessions
 ```
 
-Optional archived scan:
+默认读取 `%USERPROFILE%\.codex\sessions`，写入 `%USERPROFILE%\.codex\qa-diary`；结构化记忆默认位于 `%USERPROFILE%\.codex\qa-memory`。
+
+---
+
+## Windows 后台维护（可选）
+
+仓库附带隐藏后台监视、周期恢复和健康检查。安装后，系统可以持续整理新增会话，并在后台任务中断时自动恢复。
 
 ```powershell
-python -m qa_logger scan-sessions --include-archived --dry-run
-python -m qa_logger scan-sessions --include-archived
+powershell -ExecutionPolicy Bypass -File .\scripts\install_codex_qa_diary_watcher_task.ps1
 ```
 
-## Default Paths
+这套后台任务只负责记录、检查和恢复，不会把候选记忆自动提升成长期规则。
 
-The Python logger defaults to:
+---
 
-```text
-read:  %USERPROFILE%\.codex\sessions
-read:  %USERPROFILE%\.codex\archived_sessions  (only with --include-archived)
-write: %USERPROFILE%\.codex\qa-diary
-```
-
-The QA memory CLI defaults to:
-
-```text
-%USERPROFILE%\.codex\qa-memory
-```
-
-You can override paths with CLI parameters such as `--sessions-root`, `--diary-root`, `-Root`, `-DiaryRoot`, and `-MemoryRoot`.
-
-## Skills
-
-Copy these folders into your Codex skills directory if you want Codex to use the workflow:
-
-```text
-skills/codex-qa-memory
-skills/codex-qa-diary-recall
-```
-
-Use this split:
-
-- `codex-qa-memory`: natural recall, long-term preferences, rules, failures, project history, small nodes, candidate review.
-- `codex-qa-diary-recall`: exact quotes, dates, session/thread IDs, original diary evidence, manifest lookup.
-
-Natural phrases like "do you remember", "we discussed before", or "what did we decide earlier" should hit `codex-qa-memory` first. Exact evidence requests should fall through to `codex-qa-diary-recall`.
-
-## CLI Examples
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\skills\codex-qa-memory\scripts\qa-mem.ps1 get -Root .\qa-memory-template -Mode quick
-powershell -ExecutionPolicy Bypass -File .\skills\codex-qa-memory\scripts\qa-mem.ps1 validate -Root .\qa-memory-template
-powershell -ExecutionPolicy Bypass -File .\skills\codex-qa-memory\scripts\qa_memory_maintain.ps1 -DiaryRoot "%USERPROFILE%\.codex\qa-diary" -MemoryRoot "%USERPROFILE%\.codex\qa-memory"
-```
-
-## Automatic Maintenance
-
-The included PowerShell scripts can run a hidden watcher/supervisor on Windows. They are optional.
-
-- `codex_qa_diary_watcher.ps1`: periodically runs `python -m qa_logger scan-sessions`.
-- `codex_qa_diary_supervisor.ps1`: starts the watcher only while Codex is running.
-- `install_codex_qa_diary_watcher_task.ps1`: installs a hidden logon scheduled task.
-- `stop_codex_qa_diary_watcher_task.ps1`: stops or unregisters it.
-
-The maintenance script does not promote hard rules automatically. It can create candidates, aliases, audit records, and reports; final promotion is still a human/main-thread decision.
-
-## Optional Memory-Recall Extension Pattern
-
-You can extend this toolkit into per-turn memory recall, but it needs your own components:
-
-- a conversation logger or QA diary store;
-- an embedding model, local or remote;
-- a vector index/database/search service;
-- a retrieval step before each model request;
-- a small formatter that injects only short, source-marked snippets.
-
-Dynamic memory injection is less prompt-cache friendly than a stable prefix. Use it when recall quality matters more than maximum cache reuse.
-
-## Package Boundary
-
-This repository intentionally excludes:
-
-- real `.codex/qa-diary` content;
-- real `.codex/qa-memory` records;
-- raw `.codex/sessions` or archived sessions;
-- vector indexes and databases;
-- watcher logs and heartbeats;
-- tokens, cookies, API keys, account files, or private exports.
-
-## Validation
+## 开发者验证
 
 ```powershell
 npm run test:python
@@ -166,6 +132,21 @@ npm run memory:validate
 npm pack --dry-run
 ```
 
+---
+
+## 包里故意不放什么
+
+- 真实 QA 日记和记忆节点
+- 原始会话和存档会话
+- 向量索引、数据库、监视器日志和心跳文件
+- token、cookie、API key、账户文件或私有导出
+
+---
+
 ## License
 
-BUSL-1.1. See [LICENSE](LICENSE).
+BUSL-1.1，详见 [LICENSE](LICENSE)。
+
+---
+
+**Codex QA Memory：记住你说过的，不瞎编你没说的。**
