@@ -1,5 +1,7 @@
 # Codex QA Memory · 永不失忆的 AI 长期记忆外挂
 
+[npm 发布包：codex-qa-memory](https://www.npmjs.com/package/codex-qa-memory)
+
 给 Codex 一个不会随着窗口关闭而消失、随时可以回溯的本地记忆库。
 
 换窗口、跨项目、过一周、过一年。之前定过的规则、说过的话、个人偏好和踩过的坑，不用重新解释，问一句就能以更轻量、更准确的方式找回来。
@@ -92,7 +94,7 @@ Codex QA Memory 不走大而全的路线。它把记忆分成两层：
 
 ## 最快安装方式
 
-把这个仓库交给 Codex，让它完成下面三件事即可：
+把上面的 npm 发布包或这个 GitHub 仓库交给 Codex，让它完成下面三件事即可：
 
 1. 把 `codex-qa-memory` 和 `codex-qa-diary-recall` 复制到 Codex Skills 目录。
 2. 首次安装时，把 `qa-memory-template` 初始化为本机 QA Memory 目录。

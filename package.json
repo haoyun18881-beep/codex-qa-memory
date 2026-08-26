@@ -1,6 +1,6 @@
 {
   "name": "codex-qa-memory",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local-first Codex QA diary and memory toolkit: session-to-diary logger, structured memory nodes, PowerShell CLI, and Codex skills for recall and evidence lookup.",
   "private": false,
   "license": "BUSL-1.1",
