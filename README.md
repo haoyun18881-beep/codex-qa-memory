@@ -51,6 +51,24 @@ Codex QA Memory 不走大而全的路线。它把记忆分成两层：
 
 ---
 
+## MCP：让 Codex 直接调用记忆
+
+仓库现在还提供一个本地只读 MCP 服务。Skill 负责告诉 Agent 什么时候该查；MCP 负责把三个稳定工具直接交给 Agent：结构化记忆召回、QA 日记取证和健康检查。
+
+它不会读取原始 Session JSONL，不允许工具调用方指定任意本机路径，也不会把候选记忆偷偷提升成长期规则。
+
+MCP 当前从 GitHub 仓库安装。在仓库根目录执行一次：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install_codex_qa_memory_mcp.ps1
+```
+
+安装成功后重启 Codex，再用 `/mcp` 查看连接。详细边界和手动配置见 [MCP 说明](mcp/README.md)。
+
+安装器会登记当前仓库的绝对路径，因此安装后不要移动或删除仓库；换位置时需要重新注册。
+
+---
+
 ## 它是怎么工作的
 
 1. 日志记录器把 Codex 会话持续整理成按日期归档的 QA 日记。
@@ -129,7 +147,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install_codex_qa_diary_watche
 ## 开发者验证
 
 ```powershell
+npm test
 npm run test:python
+npm run test:mcp
 npm run memory:validate
 npm pack --dry-run
 ```

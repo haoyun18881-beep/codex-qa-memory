@@ -9,6 +9,15 @@ description: "Codex QA 取证兜底，只读查找本机 Codex QA 日记、manif
 
 本 skill 是证据室，不是记忆门口。新会话遇到“之前聊过 / 我们做过 / 你还记得吗”这类自然回忆，必须先用 `codex-qa-memory`；只有需要原话、日期、证据、session/thread ID，或 QA memory 证据不足时，才使用本 skill。
 
+## MCP 优先入口
+
+如果当前 Agent 已连接 Codex QA Memory MCP，证据查询优先调用只读工具 `qa_diary_search`；MCP 不可用或整理后的日记证据不足时，再按下面的 manifest → 日记正文流程窄查。
+
+- 优先给日期、关键词、`session_id` 中最窄的已知定位条件。
+- MCP v1 不读取原始 Codex session JSONL；无结果不等于不存在，只能报告已查范围并按本 skill 的原始 fallback Gate 决定是否继续。
+- 不把 manifest 的本机绝对路径、`cwd` 或其他私密路径当作回答内容。
+- 查询结果只是来源证据，不得直接提升为 active 记忆；需要沉淀候选时转 `codex-qa-memory`。
+
 ## 目标
 
 只读查找本机 Codex QA 日记和会话索引。优先使用整理后的 `qa-diary`，不要一上来全文读取原始 Codex session JSONL。

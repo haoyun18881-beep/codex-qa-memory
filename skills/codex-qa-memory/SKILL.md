@@ -9,6 +9,17 @@ description: "Codex QA 记忆默认入口。Use FIRST when the user asks for Cod
 
 `codex-qa-memory` 是默认入口，负责“先取结构化记忆”；`codex-qa-diary-recall` 是取证兜底，负责“再查原话、日期和 session/thread ID”。新会话遇到自然回忆说法时，必须先用本 skill，不得直接翻 QA 日记或原始 session。
 
+## MCP 优先入口
+
+如果当前 Agent 已连接 Codex QA Memory MCP，结构化召回优先调用只读工具 `qa_memory_recall`；MCP 不可用时再使用本 skill 自带脚本。两条路径遵守同一边界：
+
+- 默认只取 active 记忆；候选只有当前任务确实需要审查时才显式包含，且不能当成有效事实。
+- 只有用户明确点名当前项目历史时才传 `project_hint`；项目临时状态、旧授权、thread/run 状态不跨项目召回。
+- `quick` 足以回答就停止；需要更多上下文时才升级到 `project` 或 `deep`。
+- MCP 结果仍只是带来源的记忆线索，不能覆盖当前用户指令和当前项目文件。
+
+需要原话、日期、证据或 session/thread ID 时，转 `codex-qa-diary-recall`；不要用结构化召回代替证据查询。
+
 ## 目标
 
 把 Codex QA 日记从“长档案”升级成低成本、可追溯、可预算取回的记忆层。v2 采用“Markdown 审计层 + JSONL 机器状态层 + CLI 取回治理层 + LLM 短输出包”的四层结构；不自动加工全历史，不自动提升高影响长期规则。用户明确要求全量整理旧日记时，可批量生成 `candidate（候选）` 历史召回主题，但仍不得直接提升 active。
