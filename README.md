@@ -145,6 +145,14 @@ npm pack --dry-run
 
 ---
 
+## 联系作者
+
+添加我时请备注：**codex使用心得交流**
+
+<img src="./assets/wechat-contact-qr.png" alt="微信二维码" width="320">
+
+---
+
 ## License
 
 BUSL-1.1，详见 [LICENSE](LICENSE)。
