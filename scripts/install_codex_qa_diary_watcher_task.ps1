@@ -4,7 +4,7 @@ param(
     [string]$TaskName = "Codex QA Diary Watcher",
     [string]$TaskPath = "\Codex\",
     [string]$HealthTaskName = "Codex QA Diary Health",
-    [string]$HealthLauncher = (Join-Path $env:USERPROFILE ".codex\skills\codex-qa-memory\scripts\run_qa_diary_health_hidden.vbs"),
+    [string]$HealthLauncher = (Join-Path $env:USERPROFILE ".codex\skills\codex-qa-diary-recall\scripts\run_qa_diary_health_hidden.vbs"),
     [int]$HealthIntervalMinutes = 30,
     [int]$RecoveryIntervalMinutes = 5
 )

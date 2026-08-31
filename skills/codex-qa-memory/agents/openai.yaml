@@ -1,6 +1,6 @@
 interface:
-  display_name: "Codex QA Memory"
-  short_description: "QA 长期记忆和历史线索默认入口"
-  default_prompt: "Use $codex-qa-memory first for prior discussions, project history, user preferences, rules, and failure memories; only fall back to diary recall for exact evidence."
+  display_name: "Codex QA Memory（已退役）"
+  short_description: "仅供显式审计冻结的旧 QA memory 档案"
+  default_prompt: "Use $codex-qa-memory only to audit a frozen retired QA memory archive without writing or reactivating nodes."
 policy:
-  allow_implicit_invocation: true
+  allow_implicit_invocation: false
