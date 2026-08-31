@@ -127,7 +127,7 @@ npm run test:mcp:legacy
 npm pack --dry-run
 ```
 
-当前 GitHub 主线是 `0.2.0-dev.0`，暂不发布 npm。npm 上的 `0.1.2` 仍是旧候选记忆架构，不作为当前推荐安装来源。
+当前 GitHub 主线是 `0.2.0-dev.0`，暂不发布 npm。npm 上的 `0.1.1` 仍是旧候选记忆架构，不作为当前推荐安装来源。
 
 ---
 
