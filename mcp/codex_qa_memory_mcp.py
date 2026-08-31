@@ -86,7 +86,7 @@ SCOPE_LABELS = {
     404: "skill",
     405: "thread",
     406: "run",
-    407: "legacy-external",
+    407: "assistant-integration",
     408: "qa-memory",
 }
 
@@ -250,9 +250,6 @@ def _redact_output_text(value: Any) -> str:
         text,
     )
     text = re.sub(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]{6,}", "Bearer [REDACTED]", text)
-    profile = str(Path.home())
-    if profile:
-        text = re.sub(re.escape(profile), "%USERPROFILE%", text, flags=re.IGNORECASE)
     text = re.sub(
         r"(?i)([\"'](?:[a-z0-9]+[_-]+)*(?:authorization|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|id[_ -]?token|token|secret(?:[_ -]?access[_ -]?key)?|client[_ -]?secret|cookie|password|passwd|pwd|csrf(?:[_ -]?token)?|xsrf(?:[_ -]?token)?)[\"']\s*:\s*)(?:\"[^\"]*\"|'[^']*'|[^\s,;}]+)",
         lambda match: f"{match.group(1)}\"[REDACTED]\"",
@@ -274,8 +271,73 @@ def _redact_output_text(value: Any) -> str:
         "[REDACTED_JWT]",
         text,
     )
-    text = re.sub(r"(?i)\b[A-Z]:[\\/](?:[^\s`'\"<>|]+[\\/]?)+", "<local-path>", text)
-    text = re.sub(r"\\\\[^\s`'\"<>|]+\\[^\s`'\"<>|]+", "<local-path>", text)
+    path_end = r"(?=$|[\t ,;:!?。，；：！？)\]}])"
+    posix_roots = r"(?:Users|home|root|var|tmp|opt|srv|etc|private|Volumes|mnt|workspace|usr|data|app)"
+
+    # Quoted paths have an unambiguous end, even when their segments contain spaces.
+    text = re.sub(
+        rf'"(?:[A-Za-z]:[\\/]|\\\\|/{posix_roots}/)[^"\r\n]+"',
+        '"<local-path>"',
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        rf"'(?:[A-Za-z]:[\\/]|\\\\|/{posix_roots}/)[^'\r\n]+'",
+        "'<local-path>'",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    # For unquoted paths, a filename extension gives us a safe stopping point,
+    # so useful text after the path remains visible.
+    text = re.sub(
+        rf"(?i)\bfile:///(?!/)[^\r\n`'\"<>|]*?\.[A-Za-z0-9]{{1,16}}{path_end}",
+        "<local-path>",
+        text,
+    )
+    keyed_path = r"((?:[A-Za-z0-9_]*(?:path|dir|directory|root)|cwd|workdir)\s*[:=]\s*)"
+    text = re.sub(
+        rf"(?i)\b{keyed_path}(?:[A-Z]:[\\/]|\\\\|/(?!/))[^\r\n`'\"<>|]*?\.[A-Za-z0-9]{{1,16}}{path_end}",
+        lambda match: f"{match.group(1)}<local-path>",
+        text,
+    )
+    text = re.sub(
+        rf"(?i)(?<![A-Za-z0-9_])[A-Z]:[\\/][^\r\n`'\"<>|]*?\.[A-Za-z0-9]{{1,16}}{path_end}",
+        "<local-path>",
+        text,
+    )
+    text = re.sub(
+        rf"\\\\[^\r\n`'\"<>|]*?\.[A-Za-z0-9]{{1,16}}{path_end}",
+        "<local-path>",
+        text,
+    )
+    text = re.sub(
+        rf"(?<![:/A-Za-z0-9_])/{posix_roots}/[^\r\n`'\"<>|]*?\.[A-Za-z0-9]{{1,16}}{path_end}",
+        "<local-path>",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    # Extensionless unquoted paths are inherently ambiguous. Redact the rest
+    # of that line rather than risk exposing a private directory name.
+    text = re.sub(r"(?i)\bfile:///(?!/)[^\r\n`'\"<>|]+", "<local-path>", text)
+    text = re.sub(
+        rf"(?i)\b{keyed_path}(?:[A-Z]:[\\/]|\\\\|/(?!/))[^\r\n`'\"<>|]+",
+        lambda match: f"{match.group(1)}<local-path>",
+        text,
+    )
+    text = re.sub(
+        r"(?i)(?<![A-Za-z0-9_])[A-Z]:[\\/][^\r\n`'\"<>|]+",
+        "<local-path>",
+        text,
+    )
+    text = re.sub(r"\\\\[^\r\n`'\"<>|]+", "<local-path>", text)
+    text = re.sub(
+        rf"(?<![:/A-Za-z0-9_])/{posix_roots}/[^\r\n`'\"<>|]+",
+        "<local-path>",
+        text,
+        flags=re.IGNORECASE,
+    )
     return text
 
 

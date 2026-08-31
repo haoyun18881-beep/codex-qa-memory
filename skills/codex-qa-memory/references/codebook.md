@@ -78,7 +78,7 @@
 | 404 | skill | 某 skill 范围 |
 | 405 | thread | 某 Codex 对话线程范围 |
 | 406 | run | 某执行批次范围 |
-| 407 | openclaw | OpenClaw / local assistant integration scope |
+| 407 | assistant-integration | 外部智能体或本地助手集成范围 |
 | 408 | qa-memory | QA 存取系统自身范围 |
 
 ## 5xx 生命周期码

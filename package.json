@@ -1,6 +1,6 @@
 {
   "name": "codex-qa-memory",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Local-first Codex QA diary and memory toolkit: session-to-diary logger, structured memory nodes, PowerShell CLI, and Codex skills for recall and evidence lookup.",
   "private": false,
   "license": "BUSL-1.1",
@@ -42,7 +42,7 @@
     "test": "npm run test:python && npm run test:mcp && npm run test:powershell && npm run memory:validate",
     "test:python": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:PYTHONPATH='qa-logger/src'; python -m unittest discover -s qa-logger/tests\"",
     "test:mcp": "python -m unittest discover -s mcp/tests",
-    "test:powershell": "powershell -NoProfile -ExecutionPolicy Bypass -File skills/codex-qa-memory/tests/install_task_preflight.ps1 && powershell -NoProfile -ExecutionPolicy Bypass -File skills/codex-qa-memory/tests/qa_health_isolated_probe.ps1",
+    "test:powershell": "powershell -NoProfile -ExecutionPolicy Bypass -File skills/codex-qa-memory/tests/install_core_isolated.ps1 && powershell -NoProfile -ExecutionPolicy Bypass -File skills/codex-qa-memory/tests/install_task_preflight.ps1 && powershell -NoProfile -ExecutionPolicy Bypass -File skills/codex-qa-memory/tests/qa_health_isolated_probe.ps1",
     "memory:validate": "powershell -NoProfile -ExecutionPolicy Bypass -File skills/codex-qa-memory/scripts/qa-mem.ps1 validate -Root qa-memory-template",
     "pack:dry": "npm pack --dry-run"
   },

@@ -35,7 +35,7 @@
 | candidate | 自动抽取，有来源指针 |
 | soft-active | 低风险稳定偏好，未冲突 |
 | active | 用户确认、项目文件落地、主线程采纳或多次复用 |
-| review_required | 涉及授权、安全、凭据、服务、发布、OpenClaw 真实生效区 |
+| review_required | 涉及授权、安全、凭据、服务、发布、外部智能体真实生效区 |
 | superseded | 有明确新口径覆盖旧口径 |
 | rejected | 用户或主线程明确否决 |
 | archived | 长期不命中，或项目结束，仅追溯 |
@@ -61,6 +61,6 @@
 2. CLI 计算 0/1 标志、数字码一致性、三态 gate、跨项目 gate 和 source gate。
 3. Markdown 审计层写事件卡/小节点/关系边，供主线程复核。
 4. JSONL 机器状态层写结构化镜像：`events.jsonl`、`nodes.jsonl`、`edges.jsonl`、`sources.jsonl`。
-5. `active`、高影响规则、授权、安全、服务、发布和 OpenClaw active 相关内容必须由主线程或用户确认后才能生效。
+5. `active`、高影响规则、授权、安全、服务、发布和外部智能体真实生效区相关内容必须由主线程或用户确认后才能生效。
 
 不得让脚本输出成为无法审计的唯一事实来源；Markdown 审计层和 source 表必须能解释机器层每个可取回节点。

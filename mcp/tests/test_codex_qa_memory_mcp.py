@@ -177,6 +177,48 @@ class MemoryToolTests(QaMcpFixture):
         ):
             self.assertNotIn(secret, redacted)
 
+    def test_output_redaction_covers_local_paths_with_spaces(self) -> None:
+        raw = (
+            f"{Path.home()}\\Private Client\\Secret Project\\file.txt 后面的结论必须保留\n"
+            "\\\\server\\Private Share\\User Folder\\file.txt\n"
+            "/home/alice smith/private project/file.txt\n"
+            "/Users/Alice Smith/Library/Application Support/private.db\n"
+            "/mnt/team space/private project/report.csv keep this text\n"
+            "/workspace/client name/source/main.py safe conclusion\n"
+            "/usr/local/private tool/config.toml retained words\n"
+            "cwd:/custom mount/private project/result.json 后续信息\n"
+            "file:///home/alice/private project/report.pdf trailing note\n"
+            "GET /api/v1/users\n"
+            "https://example.com/home/public-page\n"
+            "https://example.com/Users/Alice/page"
+        )
+        redacted = MCP._redact_output_text(raw)
+        for private_fragment in (
+            "Private Client",
+            "Secret Project",
+            "Private Share",
+            "User Folder",
+            "alice smith",
+            "private project",
+            "Application Support",
+            "private.db",
+            "team space",
+            "client name",
+            "private tool",
+            "custom mount",
+        ):
+            self.assertNotIn(private_fragment, redacted)
+        self.assertEqual(redacted.count("<local-path>"), 9)
+        self.assertIn("后面的结论必须保留", redacted)
+        self.assertIn("keep this text", redacted)
+        self.assertIn("safe conclusion", redacted)
+        self.assertIn("retained words", redacted)
+        self.assertIn("后续信息", redacted)
+        self.assertIn("trailing note", redacted)
+        self.assertIn("GET /api/v1/users", redacted)
+        self.assertIn("https://example.com/home/public-page", redacted)
+        self.assertIn("https://example.com/Users/Alice/page", redacted)
+
     def test_recall_redacts_secrets_and_absolute_paths(self) -> None:
         result = MCP.qa_memory_recall({"query": "escaped pipe", "mode": "quick"}, self.config)
         serialized = json.dumps(result, ensure_ascii=False)

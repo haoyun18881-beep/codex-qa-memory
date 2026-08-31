@@ -1,233 +1,97 @@
-# Business Source License 1.1
+Business Source License 1.1
 
-Copyright (c) 2026 Yupeng Zhou (周宇鹏)
+Parameters
 
-This license is designed to protect the intellectual property of independent
-creators while granting free use to individual users, students, researchers,
-and small non-commercial operators.
+Licensor: Yupeng Zhou
 
-──────────────────────────────────────────
+Licensed Work: Codex QA Memory
+The Licensed Work is (c) 2026 Yupeng Zhou.
 
-## 1. Core Parameters
+Additional Use Grant: You may make production use of the Licensed Work solely
+for:
 
-| | |
-|---|---|
-| Licensor | Yupeng Zhou |
-| Software | Codex QA Memory — local QA diary and memory toolkit |
-| Change License | Apache License v2.0 |
-| Change Date | 2030-06-29 |
+1. personal projects and personal workflows used by an individual solely for non-commercial purposes;
+2. education, study, or non-commercial academic research; or
+3. internal use by an individual operator whose annual gross revenue is less
+   than RMB 1,000,000, provided the Licensed Work is not offered to third
+   parties as a commercial product, commercial service, SaaS, hosted service,
+   paid automation, OEM product, white-label product, or paid bundle.
 
-On and after the Change Date, this software automatically converts to Apache
-License v2.0. Prior to that date, the following terms are in full legal effect.
+Production use outside this Additional Use Grant requires a separate written
+commercial license from the Licensor. Contact: haoyun18881@gmail.com
 
-## 2. Grant — Free Use
+Change Date: 2030-06-29
 
-The following uses are completely free, no authorization or payment required:
+Change License: Apache License, Version 2.0
 
-  a) Individual developers for technical research, study, personal projects,
-     or personal Agent/MCP workflows on non-company devices;
+Business Source License 1.1
 
-  b) Students and academic researchers for non-commercial experiments;
+License text copyright © 2017 MariaDB Corporation Ab, All Rights Reserved.
+"Business Source License" is a trademark of MariaDB Corporation Ab.
 
-  c) Individual operators with annual revenue under ¥1,000,000 RMB, for
-     internal non-sale tools that do not form a commercial product, commercial
-     service, SaaS, or paid automation offering.
+Terms
 
-Within the above scope, you may:
+The Licensor hereby grants you the right to copy, modify, create derivative
+works, redistribute, and make non-production use of the Licensed Work. The
+Licensor may make an Additional Use Grant, above, permitting limited
+production use.
 
-  - Download and read source code;
-  - Run locally;
-  - Modify for personal or permitted internal use;
-  - Use in personal projects and non-commercial experiments.
+Effective on the Change Date, or the fourth anniversary of the first publicly
+available distribution of a specific version of the Licensed Work under this
+License, whichever comes first, the Licensor hereby grants you rights under
+the terms of the Change License, and the rights granted in the paragraph
+above terminate.
 
-## 3. Commercial Restrictions
+If your use of the Licensed Work does not comply with the requirements
+currently in effect as described in this License, you must purchase a
+commercial license from the Licensor, its affiliated entities, or authorized
+resellers, or you must refrain from using the Licensed Work.
 
-Without written authorization from the Licensor, no person or entity may:
+All copies of the original and modified Licensed Work, and derivative works
+of the Licensed Work, are subject to this License. This License applies
+separately for each version of the Licensed Work and the Change Date may vary
+for each version of the Licensed Work released by Licensor.
 
-  a) Use this software or derivatives in production, commercial products,
-     internal enterprise deployment, intranet deployment, commercial services,
-     paid consulting delivery, managed automation services, or Agent/MCP
-     tool platforms by any enterprise or organization with annual revenue
-     greater than or equal to ¥1,000,000 RMB;
+You must conspicuously display this License on each original or modified copy
+of the Licensed Work. If you receive the Licensed Work in original or
+modified form from a third party, the terms and conditions set forth in this
+License apply to your use of that work.
 
-  b) Use this software or derivatives as a component of a product, service,
-     platform, plugin marketplace, AI agent system, automation workbench,
-     developer tool, SaaS, hosted MCP gateway, or internal corporate agent
-     infrastructure that is monetized directly or indirectly;
+Any use of the Licensed Work in violation of this License will automatically
+terminate your rights under this License for the current and all other
+versions of the Licensed Work.
 
-  c) Replicate, port, or reconstruct functionally equivalent software in
-     any programming language based on understanding of this software's core
-     architecture and design, including but not limited to: full-capability
-     MCP tool orchestration, stdio/SSE dual transport workpack design,
-     profile-based tool exposure and denial, graceful degradation chains,
-     local file/search/code/command tool aggregation, memory recall fallback,
-     and Agent pipeline orchestration, and use it for commercial profit;
+This License does not grant you any right in any trademark or logo of
+Licensor or its affiliates (provided that you may use a trademark or logo of
+Licensor as expressly required by this License).
 
-  d) Package this software or derivatives as a commercial SaaS service,
-     hosted MCP service, enterprise internal service, OEM product, white-label
-     product, marketplace listing, or paid tool bundle without a commercial
-     license or revenue-sharing agreement with the Licensor;
+TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSED WORK IS PROVIDED ON
+AN “AS IS” BASIS. LICENSOR HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS,
+EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
+TITLE.
 
-  e) Remove, obscure, or misrepresent this license, the Licensor, or the
-     Change Date in redistributed copies or derivative works.
+MariaDB hereby grants you permission to use this License’s text to license
+your works, and to refer to it using the trademark “Business Source License”,
+as long as you comply with the Covenants of Licensor below.
 
-## 4. Commercial Licensing
+Covenants of Licensor
 
-To use this software under the restricted scope above, contact the Licensor
-for written commercial authorization.
+In consideration of the right to use this License’s text and the “Business
+Source License” name and trademark, Licensor covenants to MariaDB, and to all
+other recipients of the licensed work to be provided by Licensor:
 
-Commercial license types include but are not limited to:
+1. To specify as the Change License the GPL Version 2.0 or any later version,
+   or a license that is compatible with GPL Version 2.0 or a later version,
+   where “compatible” means that software provided under the Change License can
+   be included in a program with software provided under GPL Version 2.0 or a
+   later version. Licensor may specify additional Change Licenses without
+   limitation.
 
-  - Enterprise internal deployment license;
-  - OEM / white-label license;
-  - SaaS hosting license;
-  - Agent platform / MCP gateway integration license;
-  - Marketplace redistribution license;
-  - Revenue-sharing partnership model.
+2. To either: (a) specify an additional grant of rights to use that does not
+   impose any additional restriction on the right granted in this License, as
+   the Additional Use Grant; or (b) insert the text “None”.
 
-## 5. Enforcement
+3. To specify a Change Date.
 
-This agreement is a globally applicable commercial contract. Any person or
-entity downloading, installing, copying, modifying, distributing, or using this
-software is deemed to have read and agreed to all terms of this agreement,
-regardless of location.
-
-Jurisdiction:
-
-  a) Disputes within the PRC: governed by the laws of the People's Republic
-     of China and heard by the People's Court of the Licensor's domicile;
-
-  b) Disputes outside the PRC: governed by the UN CISG and international IP
-     conventions where applicable; parties agree to arbitration at HKIAC under
-     its rules, with Hong Kong as the seat of arbitration;
-
-  c) Regardless of jurisdiction, the Licensor may seek injunctive relief,
-     including interim and permanent injunctions, in courts where the
-     infringer's assets, users, infrastructure, or business are located.
-
-Violations of Section 3 constitute breach of contract. The Licensor may:
-
-  a) Require the infringer to immediately cease use and destroy all copies;
-  b) Recover commercial profits obtained during the infringement as damages;
-  c) Seek statutory, contractual, and equitable remedies available under
-     applicable law;
-  d) File litigation or arbitration in a court/forum of competent jurisdiction.
-
-## 6. Disclaimer
-
-This software is provided "AS IS", without warranty of any kind, express or
-implied, including but not limited to warranties of merchantability, fitness
-for a particular purpose, non-infringement, security, availability, correctness,
-or suitability for any production environment. In no event shall the Licensor
-be liable for any damages arising from the use of this software.
-
----
-
-# 商业源代码许可证 1.1 (中文版)
-
-版权所有 (c) 2026 周宇鹏
-
-本许可证旨在保护独立技术创新者的智力成果，同时为个人用户、学生、
-研究者和小规模非商业使用者提供免费使用权利。
-
-──────────────────────────────────────────
-
-## 1. 核心参数
-
-授权人 (Licensor): 周宇鹏
-
-软件名称 (Software): Codex QA Memory — 本地 QA 日记与记忆工具包
-
-变更许可证 (Change License): Apache License v2.0
-
-变更日期 (Change Date): 2030-06-29
-
-自变更日期起，本软件将自动转为 Apache License v2.0。在此之前，
-以下条款具备完全法律效力。
-
-## 2. 免费使用范围
-
-以下情况完全免费，无需授权，无需付费：
-
-  a) 个人开发者在非公司设备上用于技术研究、学习、个人项目或个人
-     Agent/MCP 工作流；
-
-  b) 学生及学术研究人员用于非商业目的的实验；
-
-  c) 年营业额低于 ¥100 万元人民币的个体经营者，用于自身非对外售卖
-     的内部工具，且不构成商业产品、商业服务、SaaS 或收费自动化服务。
-
-在上述范围内，允许：
-
-  - 下载、阅读源码；
-  - 本地运行；
-  - 为个人或被允许的内部用途修改；
-  - 在个人项目和非商业实验中使用。
-
-## 3. 商业限制
-
-未经授权人书面授权，任何人或实体不得从事以下行为：
-
-  a) 任何年营业额大于或等于 ¥100 万元人民币的企业或组织，在生产环境、
-     商业产品、企业内部部署、内网部署、商业服务、付费咨询交付、托管
-     自动化服务或 Agent/MCP 工具平台中使用本软件或其衍生品；
-
-  b) 将本软件或其衍生品作为产品、服务、平台、插件市场、AI Agent 系统、
-     自动化工作台、开发者工具、SaaS、托管 MCP 网关或企业内部 Agent 基础
-     设施的组成部分，并直接或间接商业化；
-
-  c) 在理解本软件核心架构与设计思路后，采用任何编程语言进行功能等效
-     的复刻、移植或重构，并用于商业牟利。核心架构与设计思路包括但不
-     限于：全能力 MCP 工具编排、stdio/SSE 双 transport 工作包设计、
-     基于 profile 的工具暴露与 deny、渐进降级链路、本地文件/搜索/代码/
-     命令工具聚合、记忆召回 fallback、Agent pipeline 编排；
-
-  d) 未经商业授权或收入分成协议，将本软件或其衍生品打包为商业 SaaS、
-     托管 MCP 服务、企业内部服务、OEM 产品、白标产品、市场分发项或
-     收费工具包；
-
-  e) 在再分发副本或衍生作品中移除、遮蔽或错误表述本许可证、授权人或
-     变更日期。
-
-## 4. 商业授权获取
-
-如需在上述限制范围内使用本软件，请联系授权人获取书面商业授权。
-
-商业授权类型包括但不限于：
-
-  - 企业内部部署授权；
-  - OEM / 白标授权；
-  - SaaS 托管授权；
-  - Agent 平台 / MCP 网关集成授权；
-  - 市场再分发授权；
-  - 收入分成合作模式。
-
-## 5. 法律效力
-
-本协议为全球适用的商业合同。任何个人或实体下载、安装、复制、修改、
-分发或使用本软件，即视为已阅读并同意本协议全部条款，无论其所在地。
-
-管辖权条款：
-
-  a) 中华人民共和国境内的争议，受中华人民共和国法律管辖，由授权人
-     所在地人民法院审理；
-
-  b) 中华人民共和国境外的争议，在适用范围内适用《联合国国际货物销售
-     合同公约》(CISG) 及国际知识产权相关公约，双方同意提交香港国际
-     仲裁中心 (HKIAC) 按其仲裁规则进行仲裁，仲裁地为香港；
-
-  c) 无论管辖地为何，授权人均有权在侵权方资产、用户、基础设施或营业地
-     的法院寻求禁令救济，包括临时禁令和永久禁令。
-
-违反本协议第 3 条的行为构成违约。授权人有权：
-
-  a) 要求侵权方立即停止使用并销毁所有拷贝；
-  b) 追缴侵权期间的商业获利作为经济赔偿；
-  c) 寻求适用法律下的法定、合同及衡平救济；
-  d) 向有管辖权的法院或仲裁机构提起诉讼/仲裁。
-
-## 6. 免责声明
-
-本软件按"现状"提供，不附带任何明示或默示的担保，包括但不限于适销性、
-特定用途适用性、不侵权、安全性、可用性、正确性或适合任何生产环境的
-担保。在任何情况下，授权人均不对因使用本软件而产生的任何损害承担责任。
+4. Not to modify this License in any other way.

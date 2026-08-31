@@ -48,7 +48,7 @@ description: "Codex QA 取证兜底，只读查找本机 Codex QA 日记、manif
 - 每日 manifest：`%USERPROFILE%\.codex\qa-diary\YYYY-MM-DD\_meta\manifest.jsonl`
 - 日记正文：`projects\*.md` / `general\*.md`
 - 原始 session fallback：`%USERPROFILE%\.codex\sessions`
-- 提取器项目：`<repo>\codex-qa-memory`
+- 默认提取器目录：`%USERPROFILE%\.codex\tools\codex-qa-memory`
 
 ## 查询流程
 
@@ -58,11 +58,11 @@ description: "Codex QA 取证兜底，只读查找本机 Codex QA 日记、manif
 2. 如果需要最新材料，且提取器存在，先补跑一次同步：
 
 ```powershell
-$env:PYTHONPATH='<repo>\qa-logger\src'
+$env:PYTHONPATH="$env:USERPROFILE\.codex\tools\codex-qa-memory\qa-logger\src"
 python -m qa_logger scan-sessions
 ```
 
-这只追加/更新 `qa-diary`，不要改摘要区，也不要写 Codex Memories 或 OpenClaw。
+这只追加/更新 `qa-diary`，不要改摘要区，也不要写其他记忆库或外部智能体配置。
 
 3. 查会话 ID / session ID / thread ID：
    - 先用 `rg "<id>" %USERPROFILE%\.codex\qa-diary -g "manifest.jsonl"` 或等价命令查每日 manifest。

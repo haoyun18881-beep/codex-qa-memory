@@ -89,7 +89,7 @@ QA memory 提升和降级按 [references/promotion-policy.md](references/promoti
 
 4. 写入边界：
    - 自动抽取默认只能写 `candidate（候选）` 或输出建议。
-   - 高影响规则、授权、安全、凭据、服务、发布、OpenClaw active、全局执行纪律必须人工确认后才能提升。
+   - 高影响规则、授权、安全、凭据、服务、发布、外部智能体真实生效区、全局执行纪律必须人工确认后才能提升。
    - 不把凭据原文、私密配置、大日志全文或完整 QA 日记写进记忆节点。
    - Markdown 审计层保留可读裁决；JSONL 机器状态层只保存结构化字段和脱敏 source 指针。
 

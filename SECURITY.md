@@ -8,8 +8,8 @@ This repository contains source code, skills, templates, and sanitized examples 
 
 ## Redaction
 
-The logger includes basic redaction for common secret shapes, but it is not a legal or security guarantee. Review generated diaries before sharing them.
+The logger applies basic redaction to common secret shapes in QA body text. The local diary manifest still stores source Session paths and working directories for evidence lookup, so treat the entire QA directory as private and review it before sharing.
 
 ## Reporting
 
-Open a GitHub issue for non-sensitive bugs. For sensitive issues, contact the maintainer without including secret values.
+Open a GitHub issue for non-sensitive bugs. For sensitive reports, email `haoyun18881@gmail.com`; do not include secret values in a public issue.

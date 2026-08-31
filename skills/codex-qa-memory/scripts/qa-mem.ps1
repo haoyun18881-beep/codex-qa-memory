@@ -43,7 +43,7 @@ $script:StatusLabels = @{
 }
 $script:ScopeLabels = @{
   400 = 'global.codex'; 401 = 'user.preference'; 402 = 'project'; 403 = 'tool'
-  404 = 'skill'; 405 = 'thread'; 406 = 'run'; 407 = 'openclaw'; 408 = 'qa-memory'
+  404 = 'skill'; 405 = 'thread'; 406 = 'run'; 407 = 'assistant-integration'; 408 = 'qa-memory'
 }
 $script:RelationLabels = @{
   100 = '支持'; 101 = '反驳'; 102 = '覆盖'; 103 = '继承'; 104 = '依赖'

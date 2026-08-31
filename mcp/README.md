@@ -19,7 +19,13 @@
 
 ## 安装到 Codex
 
-在仓库根目录运行：
+先运行仓库根目录的核心安装器，安装两个 Skill 并初始化 QA Memory：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install_codex_qa_memory.ps1
+```
+
+再按需注册 MCP：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\install_codex_qa_memory_mcp.ps1
@@ -27,7 +33,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install_codex_qa_memory_mcp.p
 
 安装脚本只注册 MCP，不运行记忆查询。安装成功后重启 Codex，再用 `/mcp` 查看连接状态。
 
-注册项会保存当前仓库中 MCP 服务脚本的绝对路径。安装后不要移动或删除这个仓库；如果仓库位置改变，先运行 `codex mcp remove codex-qa-memory`，再从新位置重新安装。
+注册项会保存当前仓库中 MCP 服务脚本的绝对路径。建议把仓库放在固定工具目录；如果位置改变，先运行 `codex mcp remove codex-qa-memory`，再从新位置重新安装。
 
 如果同名配置已经指向当前服务，脚本会直接报告已安装；如果同名配置指向别处，脚本会停止，不会静默覆盖或删除。只预览、不写配置时使用 `-DryRun`。
 

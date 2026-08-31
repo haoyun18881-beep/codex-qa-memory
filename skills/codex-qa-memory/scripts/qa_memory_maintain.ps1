@@ -286,7 +286,7 @@ function Test-HighSignalTopic {
     '自动|全局|AGENTS|SKILL|skill|QA|日记|记忆|候选|active|candidate|提升|召回|索引|维护',
     '策略|方案|裁决|同意|不同意|否决|确认|整改|迁移|复核|检查|审查',
     '修复|BUG|失败|问题|根因|风险|阻塞|完成|验证|压缩|交接|五件套|三件套',
-    'OpenClaw|SC|Codex|subagent|子智能体|worktree|工具|脚本'
+    '外部智能体|本地助手|assistant integration|local assistant|Codex|subagent|子智能体|worktree|工具|脚本'
   )
 
   foreach ($pattern in $patterns) {
@@ -310,8 +310,8 @@ function Get-ScopeInfo {
   if ($Topic -match 'QA|日记|记忆|candidate|active|召回|terms|qa-memory') {
     return @{ code = 408; label = 'qa-memory（QA 存取系统自身范围）'; type = 'qa-memory'; id = 'global.codex.qa' }
   }
-  if ($Topic -match 'OpenClaw|SC') {
-    return @{ code = 407; label = 'openclaw（OpenClaw / local assistant integration scope）'; type = 'openclaw'; id = 'openclaw.general' }
+  if ($Topic -match '外部智能体|本地助手|assistant integration|local assistant') {
+    return @{ code = 407; label = 'assistant-integration（外部智能体或本地助手集成范围）'; type = 'assistant-integration'; id = 'assistant.integration' }
   }
   if ($Topic -match 'SKILL|skill') {
     return @{ code = 404; label = 'skill（某 skill 范围）'; type = 'skill'; id = 'codex.skills' }
@@ -332,7 +332,7 @@ function Get-SensitiveInfo {
   if ($Topic -match '(key|token|cookie|Authorization|Bearer|密码|凭据|账号|private key)') {
     return @{ sensitive = 'redacted'; risk = 'review_required_context' }
   }
-  if ($Topic -match '(授权|发布|删除|服务|重启|全局|AGENTS|OpenClaw active)') {
+  if ($Topic -match '(授权|发布|删除|服务|重启|全局|AGENTS|外部智能体真实生效区)') {
     return @{ sensitive = 'none'; risk = 'review_required_context' }
   }
   return @{ sensitive = 'none'; risk = 'recall_topic' }
