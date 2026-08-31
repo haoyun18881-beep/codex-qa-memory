@@ -2,11 +2,13 @@
 
 [npm 发布包：codex-qa-memory](https://www.npmjs.com/package/codex-qa-memory)
 
-给 Codex 一个不会随着窗口关闭而消失、随时可以回溯的本地记忆库。
+给 Codex 一个不会随着窗口关闭一起消失、随时能找回来的本地记忆库。
 
-搭配 Obsidian 使用，QA 会在需要时自动精准召回，Obsidian 每天自动整理沉淀一次，慢慢搭起自己的个人知识库。
+推荐和 Obsidian、每日/每周自动化、[知识库召回 Skill](https://github.com/haoyun18881-beep/personal-knowledge-recall) 一起用。平时排查故障、做规划、继续项目，或者问“这件事以前聊过吗”，召回 Skill 会先去 Obsidian 找已经整理好的经验。需要当时的原话、日期或会话编号，再交给 Codex QA 精准取证。
 
-换窗口、跨项目、过一周、过一年。之前定过的规则、说过的话、个人偏好和踩过的坑，不用重新解释，问一句就能以更轻量、更准确的方式找回来。
+Codex QA 负责持续记录新对话，并整理成可以召回的记忆线索；Obsidian 负责把经验、项目和主题放进一套看得见的结构里；每日和每周自动化负责补充、提炼和检查遗漏；召回 Skill 负责在合适的任务里打开知识库。
+
+换窗口、跨项目，哪怕隔了一年，之前定过的规则、说过的话、个人偏好和踩过的坑，也不用重新解释。
 
 - 🧠 **永不失忆**：完整 QA 日记和结构化记忆要点双层保存
 - ⚡ **先快后准**：先查小记忆，需要原话时再精准取证
@@ -39,10 +41,17 @@ Codex QA Memory 不走大而全的路线。它把记忆分成两层：
 
 ---
 
-## 两个 Skill，各管一件事
+## 完整的召回顺序
 
-- **codex-qa-memory**：负责自然回忆、长期偏好、规则、失败经验、项目历史和候选记忆审查。
-- **codex-qa-diary-recall**：负责原话、日期、Session ID、Thread ID 和原始日记证据。
+推荐的顺序是：
+
+`Obsidian 知识库 → codex-qa-memory → codex-qa-diary-recall`
+
+- **[personal-knowledge-recall](https://github.com/haoyun18881-beep/personal-knowledge-recall)**：先按当前任务查 Obsidian。知识库已经能回答，就不再扩大召回。
+- **codex-qa-memory**：知识库信息不够时，补充长期偏好、规则、失败经验、项目历史和候选记忆。
+- **codex-qa-diary-recall**：需要原话、日期、Session ID、Thread ID 或证据位置时，再窄查完整 QA 日记。
+
+`personal-knowledge-recall` 是推荐搭配的独立 Skill，不包含在当前 npm 包中；没有 Obsidian 时，Codex QA 自带的两个 Skill 仍可单独使用。
 
 你可以直接这样说：
 
@@ -73,12 +82,15 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install_codex_qa_memory_mcp.p
 
 ## 它是怎么工作的
 
-1. 日志记录器把 Codex 会话持续整理成按日期归档的 QA 日记。
-2. 记忆维护脚本从日记索引中生成可审查的候选记忆节点。
-3. 日常回忆先查小节点，快速恢复偏好、规则、决定和失败经验。
-4. 需要原始证据时，再根据来源指针窄查对应日记或会话。
+1. Codex QA 的日志记录器把新会话整理成按日期归档的 QA 日记。
+2. Codex QA 的记忆维护脚本从日记索引中生成可审查的候选记忆节点。
+3. 如果另外配置了 Obsidian 每日/每周工作流，可以把候选经验继续整理到项目和主题入口。
+4. `personal-knowledge-recall` 在合适的任务里先查 Obsidian，信息不够时再查 QA 记忆。
+5. 需要原始证据时，最后根据来源指针窄查对应日记或会话。
 
 完整记录不会因为生成了小节点就被丢掉。小节点负责快，原始日记负责准。
+
+前两步属于 Codex QA 自带能力；Obsidian 整理流程需要用户另行配置，不会因为安装 Codex QA 自动出现。知识库召回 Skill 也需要从它的 [独立仓库](https://github.com/haoyun18881-beep/personal-knowledge-recall)安装。
 
 ---
 
@@ -114,7 +126,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install_codex_qa_memory_mcp.p
 
 ## 最快安装方式
 
-把上面的 npm 发布包或这个 GitHub 仓库交给 Codex，让它完成下面三件事即可：
+把上面的 npm 发布包或这个 GitHub 仓库交给 Codex，让它完成下面三件事：
 
 1. 把 `codex-qa-memory` 和 `codex-qa-diary-recall` 复制到 Codex Skills 目录。
 2. 首次安装时，把 `qa-memory-template` 初始化为本机 QA Memory 目录。
@@ -132,17 +144,19 @@ python -m qa_logger scan-sessions
 
 默认读取 `%USERPROFILE%\.codex\sessions`，写入 `%USERPROFILE%\.codex\qa-diary`；结构化记忆默认位于 `%USERPROFILE%\.codex\qa-memory`。
 
+如果还想让 Codex 先查 Obsidian，再单独安装 [personal-knowledge-recall](https://github.com/haoyun18881-beep/personal-knowledge-recall)，并为它配置自己的 vault。这个额外 Skill 和 Obsidian 每日/每周自动化都不在 Codex QA 的 npm 包里。
+
 ---
 
 ## Windows 后台维护（可选）
 
-仓库附带隐藏后台监视、周期恢复和健康检查。安装后，系统可以持续整理新增会话，并在后台任务中断时自动恢复。
+仓库附带 Codex QA 的隐藏后台监视、周期恢复和健康检查。安装后，它可以持续整理新增会话，并在后台任务中断时自动恢复。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\install_codex_qa_diary_watcher_task.ps1
 ```
 
-这套后台任务只负责记录、检查和恢复，不会把候选记忆自动提升成长期规则。
+这套后台任务只负责 QA 会话记录、检查和恢复，不会维护 Obsidian，也不会把候选记忆自动提升成长期规则。Obsidian 的每日/每周整理需要单独配置，可以参考 [personal-knowledge-recall 的维护流程](https://github.com/haoyun18881-beep/personal-knowledge-recall/blob/main/references/automation-workflow.md)。
 
 ---
 
