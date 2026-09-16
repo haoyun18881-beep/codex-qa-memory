@@ -3,7 +3,7 @@
   "version": "0.2.0-dev.0",
   "description": "Local-first Codex QA diary and evidence toolkit for Obsidian-backed knowledge workflows.",
   "private": true,
-  "license": "BUSL-1.1",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/haoyun18881-beep/codex-qa-memory.git"
